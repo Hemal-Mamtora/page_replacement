@@ -219,9 +219,30 @@ void secondChance(){
 }
 
 int main(){
+    int option;
     initializeMemory();
-    // FIFO();
-    // LRU();
-    // secondChance();
+    printf("Choose a page replacement algorithm:\n");
+    printf("Press 1 for FIFO\n");
+    printf("Press 2 for LRU\n");
+    printf("Press 3 for Second Chance\n");
+    printf("Your choice: ");
+    scanf("%d", &option);
+    switch(option){
+        case 1:
+            printf("Running FIFO:\n");
+            FIFO();
+            break;
+        case 2:
+            printf("Running LRU:\n");
+            LRU();
+            break;
+        case 3:
+            printf("Running Second Chance:\n");
+            secondChance();
+            break;
+        default:
+            printf("Please choose a valid option!\n");
+            break;
+    }
     return 0;
 }
