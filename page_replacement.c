@@ -30,11 +30,24 @@ void initializeMemory() {
 }
 
 // TODO: modify
-void display(int pageFault) {
-  int i;
-  for (i = 0; i < SIZE; i++)
-    printf("%2d  ", memory[i]);
-  printf("pagefault: %d\n", pageFault);
+void display(int (*res)[25], int * input) {
+  // Printing the table
+  for (int j = 0; j < 25; j++) {
+      if (j == 0) {
+          printf("    ");
+      }
+      else{
+          printf("%2d  ", input[j-1]);
+      }
+    }
+    printf("\n");
+
+  for (int i = 0; i < 9; i++) {
+    for (int j = 0; j < 25; j++) {
+      printf("%2d  ", res[i][j]);
+    }
+    printf("\n");
+  }
 }
 
 void fillMatrix(int pageFault, int index) {
@@ -64,6 +77,7 @@ void FIFO() {
     input[i] = x;
     i++;
   }
+  fclose(fp);
 
   int n = sizeof(input) / sizeof(input[0]);
 
@@ -76,13 +90,7 @@ void FIFO() {
     fillMatrix(pageFault, i + 1);
   }
 
-  // Printing the table
-  for (int i = 0; i < 9; i++) {
-    for (int j = 0; j < 25; j++) {
-      printf("%2d  ", res[i][j]);
-    }
-    printf("\n");
-  }
+  display(res, input);
 }
 
 typedef struct map {
@@ -93,7 +101,7 @@ map age[MEMORY_SIZE];
 
 int initializeAge() {
   for (int i = 0; i < MEMORY_SIZE; i++) {
-    age[i] = (map){-1, -1};
+    age[i] = (map) {-1, -1};
   }
 }
 
@@ -134,7 +142,7 @@ int insertLRU(int page, int index) {
     current = temp;
   }
 
-  age[index] = (map){page, 0}; // frequency of incoming page is 0, incrementAge
+  age[index] = (map) {page, 0}; // frequency of incoming page is 0, incrementAge
                                // makes it 1, which is currect Age.
 
   return 0;
@@ -184,6 +192,7 @@ void LRU() {
     input[i] = x;
     i++;
   }
+  fclose(fp);
 
   int n = sizeof(input) / sizeof(input[0]);
 
@@ -200,64 +209,117 @@ void LRU() {
     fillMatrix(pageFault, i + 1);
   }
 
-  // Printing the table
-  for (int i = 0; i < 9; i++) {
-    for (int j = 0; j < 25; j++) {
-      printf("%2d  ", res[i][j]);
-    }
-    printf("\n");
+  display(res, input);
+}
+
+typedef struct frame {
+  int page, secondChanceBit;
+} frame;
+
+frame memoryFrames[MEMORY_SIZE];
+
+// int insertSecondChance(int page) {
+
+
+//   int temp, current;
+
+//   while (1) {
+//     if (secondChanceBit[roundRobinPointer] == 1) {
+//       secondChanceBit[roundRobinPointer] = 0;
+//     } else {
+//       // secondChanceBit at current position is 0
+//       // hence this page is to be replaced
+//       temp = memory[roundRobinPointer];
+//       memory[roundRobinPointer] = page;
+//       current = temp;
+
+//       // maintaining the recently exited pages out of memory as directed in the
+//       // question
+//       for (int i = MEMORY_SIZE; i < SIZE; i++) {
+//         temp = memory[i];
+//         memory[i] = current;
+//         current = temp;
+//       }
+//       // roundRobinPointer is currently at the page which was just replaced.
+//       // it should be incremented before exiting
+//       roundRobinPointer = (roundRobinPointer + 1) % MEMORY_SIZE;
+//       return 0;
+//     }
+//     roundRobinPointer = (roundRobinPointer + 1) % MEMORY_SIZE;
+//   }
+// }
+
+void initializeSecondChance() {
+  for (int i = 0; i < SIZE; i++) {
+    memoryFrames[i] = (frame) {-1, 0};
   }
 }
 
-int secondChanceBit[MEMORY_SIZE];
-
-int initializeSecondChanceBit() {
-  for (int i = 0; i < MEMORY_SIZE; i++) {
-    secondChanceBit[i] = 0;
-  }
-  return 0;
-}
-
-int roundRobinPointer = 0;
 int insertSecondChance(int page) {
 
   for (int i = 0; i < MEMORY_SIZE; i++) {
-    if (memory[i] == -1) {
-      memory[i] = page;
-      return 0;
-    }
-  }
-
-  int temp, current;
-
-  while (1) {
-    if (secondChanceBit[roundRobinPointer] == 1) {
-      secondChanceBit[roundRobinPointer] = 0;
-    } else {
-      // secondChanceBit at current position is 0
-      // hence this page is to be replaced
-      temp = memory[roundRobinPointer];
-      memory[roundRobinPointer] = page;
-      current = temp;
-
-      // maintaining the recently exited pages out of memory as directed in the
-      // question
-      for (int i = MEMORY_SIZE; i < SIZE; i++) {
-        temp = memory[i];
-        memory[i] = current;
-        current = temp;
+      if (memoryFrames[i].page == page) {
+        memoryFrames[i].secondChanceBit = 1;
+        return 0; // no pageFault
       }
-      // roundRobinPointer is currently at the page which was just replaced.
-      // it should be incremented before exiting
-      roundRobinPointer = (roundRobinPointer + 1) % MEMORY_SIZE;
-      return 0;
-    }
-    roundRobinPointer = (roundRobinPointer + 1) % MEMORY_SIZE;
   }
+
+  int outIndex = -1;
+
+  // lets see if we find empty page
+  for (int i = 0; i < MEMORY_SIZE; i++) {
+    if (memoryFrames[i].page == -1) {
+      outIndex = i;
+      break;
+    }
+  }
+
+  if (outIndex != -1) {
+    for (int i = outIndex; i > 0; i --) {
+      memoryFrames[i] = memoryFrames[i-1];
+    }
+    memoryFrames[0] = (frame){page, 0};
+    return 1;
+  }
+
+  // if control reaches here, this means, there's page fault, and we need to
+  // check second chance bit too.
+
+  // but first lets move the last 4 exited pages
+  for (int i = SIZE - 1; i > MEMORY_SIZE; i--) {
+    memoryFrames[i] = memoryFrames[i-1];
+  }
+
+  for (int i = MEMORY_SIZE - 1; i >= 0; i--) {
+    if (memoryFrames[i].secondChanceBit == 1) {
+      memoryFrames[i].secondChanceBit = 0; // 2nd chance exhausted
+    }
+    else{
+      // currently at an index to be moved out.
+      memoryFrames[MEMORY_SIZE] = memoryFrames[i]; // moved out
+      outIndex = i;
+      break;
+    }
+  }
+
+  if (outIndex == -1) {
+    // this means, all pageFrames got a second chance.
+    // hence, outIndex should be the first page in. (since FIFO) 
+    // first page in, would be at index MEMORY_SIZE - 1
+    outIndex = MEMORY_SIZE - 1;
+  }
+
+  for (int i = outIndex; i > 0; i--) {
+    memoryFrames[i] = memoryFrames[i-1];
+  }
+
+  // finally, we place the current page
+  memoryFrames[0] = (frame){page, 0};
+  return 1; // page fault had occured
 }
 
 void secondChance() {
-  initializeSecondChanceBit();
+  initializeSecondChance();
   int page;
   int pageFault = 0;
   int index = -1;
@@ -279,39 +341,24 @@ void secondChance() {
     input[i] = x;
     i++;
   }
+  fclose(fp);
 
   int n = sizeof(input) / sizeof(input[0]);
 
   for (int i = 0; i < n; i++) {
     page = input[i];
-    index = pageMemoryIndex(page);
-    pageFault = index == -1;
-    if (pageFault) {
-      insertSecondChance(page);
-    } else {
-      secondChanceBit[index] = 1;
+    pageFault = insertSecondChance(page);
+
+    for (int i = 0; i < SIZE; i++){
+      memory[i] = memoryFrames[i].page;
     }
+
     fillMatrix(pageFault, i + 1);
   }
 
-  // Printing the table
-  for (int j = 0; j < 25; j++) {
-      if (j == 0){
-          printf("    ");
-      }
-      else{
-          printf("%2d  ", input[j-1]);
-      }
-    }
-    printf("\n");
-
-  for (int i = 0; i < 9; i++) {
-    for (int j = 0; j < 25; j++) {
-      printf("%2d  ", res[i][j]);
-    }
-    printf("\n");
-  }
+  display(res, input);
 }
+
 
 int main() {
   int option;
