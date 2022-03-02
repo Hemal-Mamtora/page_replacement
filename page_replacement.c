@@ -53,11 +53,6 @@ typedef struct map{
   int key, val;
 } map;
 
-//  TODO: change counter to age and remove the one with maximum age.
-//  TODO: on each iteration increment the age of all the pages,
-//        insert the page with age 0, so increment would make it 1,
-//        it would be uniform
-//  TODO: 
 map age[MEMORY_SIZE];
 
 int initializeAge(){
