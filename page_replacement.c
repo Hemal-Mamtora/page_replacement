@@ -3,10 +3,13 @@
 
 #define SIZE 8
 #define MEMORY_SIZE 4
+#define INPUT_SIZE 24
 
 int memory[SIZE];
 
-int res[9][25];
+// SIZE + 1 for storing pagefault
+// INPUT_SIZE + 1 for storing initial state and INPUT_SIZE number of columns.s 
+int res[SIZE + 1][INPUT_SIZE + 1]; 
 
 int pageMemoryIndex(int page) {
   for (int i = 0; i < MEMORY_SIZE; i++)
@@ -30,9 +33,9 @@ void initializeMemory() {
 }
 
 // TODO: modify
-void display(int (*res)[25], int * input) {
+void display(int (*res)[INPUT_SIZE + 1], int * input) {
   // Printing the table
-  for (int j = 0; j < 25; j++) {
+  for (int j = 0; j < INPUT_SIZE + 1; j++) {
       if (j == 0) {
           printf("    ");
       }
@@ -43,7 +46,7 @@ void display(int (*res)[25], int * input) {
     printf("\n");
 
   for (int i = 0; i < 9; i++) {
-    for (int j = 0; j < 25; j++) {
+    for (int j = 0; j < INPUT_SIZE + 1; j++) {
       printf("%2d  ", res[i][j]);
     }
     printf("\n");
@@ -70,7 +73,7 @@ void FIFO() {
     exit(1);
   }
 
-  int input[24];
+  int input[INPUT_SIZE];
   int x;
   int i = 0;
   while (fscanf(fp, "%d", &x) == 1) {
@@ -185,7 +188,7 @@ void LRU() {
     exit(1);
   }
 
-  int input[24];
+  int input[INPUT_SIZE];
   int x;
   int i = 0;
   while (fscanf(fp, "%d", &x) == 1) {
@@ -334,7 +337,7 @@ void secondChance() {
     exit(1);
   }
 
-  int input[24];
+  int input[INPUT_SIZE];
   int x;
   int i = 0;
   while (fscanf(fp, "%d", &x) == 1) {
