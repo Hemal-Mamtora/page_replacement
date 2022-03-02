@@ -152,7 +152,7 @@ void LRU(){
 
 int main(){
     initializeMemory();
-    FIFO();
-    LRU();
+    // FIFO();
+    // LRU();
     return 0;
 }
