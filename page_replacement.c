@@ -8,11 +8,11 @@ size_t n = sizeof(page_stream)/sizeof(page_stream[0]);
 
 int memory[SIZE];
 
-int IsPageInMemory(int page){
+int pageMemoryIndex(int page){
     for(int i = 0; i < MEMORY_SIZE; i++)
       if(page == memory[i])
-        return 1;
-    return 0;
+        return i;
+    return -1;
 }
 
 void insert(int page){
@@ -42,7 +42,7 @@ void FIFO(){
     for(int i = 0; i < n; i++){
         page = page_stream[i];
         // printf("\nPAGE: %d\n", page);
-        pageFault = !IsPageInMemory(page);
+        pageFault = pageMemoryIndex(page) == -1;
         if(pageFault)
           insert(page);
         display(pageFault);
@@ -137,7 +137,7 @@ void LRU(){
     display(0);
     for(int i = 0; i < n; i++){
         page = page_stream[i];
-        pageFault = !IsPageInMemory(page);
+        pageFault = pageMemoryIndex(page) == -1;
         if(pageFault){
             index = findLRU();
             insertLRU(page, index);
@@ -150,9 +150,78 @@ void LRU(){
     }
 }
 
+int secondChanceBit[MEMORY_SIZE];
+
+int initializeSecondChanceBit(){
+    for(int i = 0; i< MEMORY_SIZE; i++){
+        secondChanceBit[i] = 0;
+    }
+    return 0;
+}
+
+int roundRobinPointer = 0;
+int insertSecondChance(int page){
+
+    for(int i = 0; i < MEMORY_SIZE; i++){
+        if(memory[i] == -1){
+            memory[i] = page;
+            return 0;
+        }
+    }
+
+    int temp, current;
+
+    while(1){
+        if(secondChanceBit[roundRobinPointer] == 1){
+            secondChanceBit[roundRobinPointer] = 0;
+        }
+        else{
+            // secondChanceBit at current position is 0
+            // hence this page is to be replaced
+            temp = memory[roundRobinPointer];
+            memory[roundRobinPointer] = page;
+            current = temp;
+
+            // maintaining the recently exited pages out of memory as directed in the question
+            for(int i = MEMORY_SIZE; i < SIZE; i++){
+                temp = memory[i];
+                memory[i] = current;
+                current = temp;
+            }
+            // roundRobinPointer is currently at the page which was just replaced.
+            // it should be incremented before exiting
+            roundRobinPointer = (roundRobinPointer + 1) % MEMORY_SIZE;
+            return 0;
+        }
+        roundRobinPointer = (roundRobinPointer + 1) % MEMORY_SIZE;
+    }
+}
+
+void secondChance(){
+    initializeSecondChanceBit();
+    int page;
+    int pageFault = 0;
+    int index = -1;
+
+    display(0);
+    for(int i = 0; i < n; i++){
+        page = page_stream[i];
+        index = pageMemoryIndex(page);
+        pageFault = index == -1;
+        if(pageFault){
+            insertSecondChance(page);
+        }
+        else{
+            secondChanceBit[index] = 1;
+        }
+        display(pageFault);
+    }
+}
+
 int main(){
     initializeMemory();
     // FIFO();
     // LRU();
+    // secondChance();
     return 0;
 }
