@@ -295,6 +295,16 @@ void secondChance() {
   }
 
   // Printing the table
+  for (int j = 0; j < 25; j++) {
+      if (j == 0){
+          printf("    ");
+      }
+      else{
+          printf("%2d  ", input[j-1]);
+      }
+    }
+    printf("\n");
+
   for (int i = 0; i < 9; i++) {
     for (int j = 0; j < 25; j++) {
       printf("%2d  ", res[i][j]);
