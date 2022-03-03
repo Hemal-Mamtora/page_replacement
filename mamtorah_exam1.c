@@ -35,6 +35,7 @@ void initializeMemory() {
 // TODO: modify
 void display(int (*res)[INPUT_SIZE + 1], int * input) {
   // Printing the table
+  printf("Input pages:      ");
   for (int j = 0; j < INPUT_SIZE + 1; j++) {
       if (j == 0) {
           printf("    ");
@@ -46,6 +47,15 @@ void display(int (*res)[INPUT_SIZE + 1], int * input) {
     printf("\n");
 
   for (int i = 0; i < 9; i++) {
+    if (i < 4){
+      printf("Memory %d:         ", (i+1));
+    }
+    else if (i < 8){
+      printf("Recently out %d:   ", (i-3));
+    }
+    else{
+      printf("Pagefault:        ");
+    }
     for (int j = 0; j < INPUT_SIZE + 1; j++) {
       printf("%2d  ", res[i][j]);
     }
